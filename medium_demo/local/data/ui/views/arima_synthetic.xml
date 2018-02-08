@@ -1,0 +1,174 @@
+<dashboard script="arima.js">
+  <label>ARIMA synthetic</label>
+  <init>
+    <set token="reload">1</set>
+  </init>
+  <row>
+    <panel>
+      <html>
+      <button type="button" id="btn_generate" class="btn btn-primary">Generate new data</button>
+    </html>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <title>ARIMA(1, 0, 0)</title>
+      <chart>
+        <search id="arima100">
+          <query>| inputlookup arima100.csv | eval tmp=$reload$ | fields - tmp</query>
+          <earliest>0</earliest>
+          <latest></latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="charting.axisTitleX.visibility">collapsed</option>
+        <option name="charting.axisTitleY.visibility">collapsed</option>
+        <option name="charting.chart">line</option>
+        <option name="charting.drilldown">all</option>
+        <option name="charting.legend.placement">none</option>
+        <option name="height">400</option>
+        <option name="refresh.display">progressbar</option>
+      </chart>
+    </panel>
+    <panel>
+      <chart>
+        <title>ACF</title>
+        <search base="arima100">
+          <query>| fit ACF k=20 arima100
+| fields - _time, arima100</query>
+        </search>
+        <option name="charting.axisY.maximumNumber">1</option>
+        <option name="charting.chart.overlayFields">lower95(acf(arima100)),upper95(acf(arima100))</option>
+        <option name="charting.legend.placement">none</option>
+        <option name="height">200</option>
+        <option name="refresh.display">progressbar</option>
+      </chart>
+      <chart>
+        <title>PACF</title>
+        <search base="arima100">
+          <query>| fit PACF k=20 arima100
+| fields - _time, arima100</query>
+        </search>
+        <option name="charting.axisY.maximumNumber">1</option>
+        <option name="charting.chart.overlayFields">lower95(pacf(arima100)),upper95(pacf(arima100))</option>
+        <option name="charting.legend.placement">none</option>
+        <option name="height">200</option>
+        <option name="refresh.display">progressbar</option>
+      </chart>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <title>ARIMA(0, 0, 2)</title>
+      <chart>
+        <search id="arima002">
+          <query>| inputlookup arima002.csv | eval tmp=$reload$ | fields - tmp</query>
+          <earliest>0</earliest>
+          <latest></latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="charting.axisTitleX.visibility">collapsed</option>
+        <option name="charting.axisTitleY.visibility">collapsed</option>
+        <option name="charting.chart">line</option>
+        <option name="charting.drilldown">all</option>
+        <option name="charting.legend.placement">none</option>
+        <option name="height">400</option>
+        <option name="refresh.display">progressbar</option>
+      </chart>
+    </panel>
+    <panel>
+      <chart>
+        <title>ACF</title>
+        <search base="arima002">
+          <query>| fit ACF k=20 arima002
+| fields - _time, arima002</query>
+        </search>
+        <option name="charting.axisY.maximumNumber">1</option>
+        <option name="charting.chart.overlayFields">lower95(acf(arima002)),upper95(acf(arima002))</option>
+        <option name="charting.legend.placement">none</option>
+        <option name="height">200</option>
+        <option name="refresh.display">progressbar</option>
+      </chart>
+      <chart>
+        <title>PACF</title>
+        <search base="arima002">
+          <query>| fit PACF k=20 arima002
+| fields - _time, arima002</query>
+        </search>
+        <option name="charting.axisTitleY.visibility">collapsed</option>
+        <option name="charting.axisY2.enabled">0</option>
+        <option name="charting.chart.overlayFields">lower95(pacf(arima002)),upper95(pacf(arima002))</option>
+        <option name="charting.legend.placement">none</option>
+        <option name="height">200</option>
+        <option name="refresh.display">progressbar</option>
+      </chart>
+    </panel>
+  </row>
+  <row depends="$visible$">
+    <panel>
+      <title>Generate ARIMA(1, 0, 0)</title>
+      <table>
+        <search>
+          <query>| gentimes start="01/01/2018" increment=1h
+| eval tmp=$generate$
+| eval _time=starttime, loc=0, scale=1
+| normal loc=loc scale=scale
+| streamstats sum(gen_normal) as arima100
+| table _time, arima100
+| outputlookup arima100.csv</query>
+          <earliest>0</earliest>
+          <latest></latest>
+          <sampleRatio>1</sampleRatio>
+          <done>
+            <eval token="reload">now()</eval>
+          </done>
+        </search>
+        <option name="count">10</option>
+      </table>
+    </panel>
+    <panel>
+      <title>Generate ARIMA(0, 0, 2)</title>
+      <table>
+        <search>
+          <query>| gentimes start="01/01/2018" increment=1h
+| eval tmp=$generate$
+| eval _time=starttime, loc=0, scale=1
+| normal loc=loc scale=scale
+| autoregress p=1-2 gen_normal
+| eval const=0
+| foreach gen_normal_*
+    [eval &lt;&lt;FIELD&gt;&gt;=coalesce(&lt;&lt;FIELD&gt;&gt;, 0)]
+| eval arima002=const + gen_normal + gen_normal_p1 + gen_normal_p2
+| table _time, arima002
+| outputlookup arima002.csv</query>
+          <earliest>0</earliest>
+          <latest></latest>
+          <sampleRatio>1</sampleRatio>
+          <done>
+            <eval token="reload">now()</eval>
+          </done>
+        </search>
+        <option name="count">10</option>
+      </table>
+    </panel>
+    <panel>
+      <title>Generate ARIMA(1, 1, 0)</title>
+      <table>
+        <search>
+          <query>| gentimes start="01/01/2018" increment=1h
+| eval tmp=$generate$
+| eval _time=starttime, loc=0, scale=1
+| normal loc=loc scale=scale
+| streamstats sum(gen_normal) as arima100
+| streamstats count as trend
+| eval arima110 = arima100 + trend/10
+| table _time, arima110
+| outputlookup arima110.csv</query>
+          <earliest>-24h@h</earliest>
+          <latest>now</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="refresh.display">progressbar</option>
+      </table>
+    </panel>
+  </row>
+</dashboard>

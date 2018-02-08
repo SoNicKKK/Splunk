@@ -9,3 +9,10 @@ modtime = 1517833169.677705000
 [nav/default]
 version = 7.0.0
 modtime = 1517842310.249887000
+
+[views/arima_synthetic]
+access = read : [ * ], write : [ * ]
+export = none
+owner = admin
+version = 7.0.0
+modtime = 1518114741.310196000
