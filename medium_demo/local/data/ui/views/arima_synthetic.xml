@@ -1,8 +1,9 @@
-<dashboard script="arima.js">
+<form script="arima.js">
   <label>ARIMA synthetic</label>
   <init>
     <set token="reload">1</set>
   </init>
+  <fieldset submitButton="false"></fieldset>
   <row>
     <panel>
       <html>
@@ -28,16 +29,15 @@
         <option name="height">400</option>
         <option name="refresh.display">progressbar</option>
       </chart>
-    </panel>
-    <panel>
       <chart>
         <title>ACF</title>
         <search base="arima100">
-          <query>| fit ACF k=20 arima100
-| fields - _time, arima100</query>
+          <query>| rename arima100 as ts
+| fit ACF k=20 ts
+| fields - _time, ts</query>
         </search>
         <option name="charting.axisY.maximumNumber">1</option>
-        <option name="charting.chart.overlayFields">lower95(acf(arima100)),upper95(acf(arima100))</option>
+        <option name="charting.chart.overlayFields">lower95(acf(ts)),upper95(acf(ts))</option>
         <option name="charting.legend.placement">none</option>
         <option name="height">200</option>
         <option name="refresh.display">progressbar</option>
@@ -45,18 +45,17 @@
       <chart>
         <title>PACF</title>
         <search base="arima100">
-          <query>| fit PACF k=20 arima100
-| fields - _time, arima100</query>
+          <query>| rename arima100 as ts
+| fit PACF k=20 ts
+| fields - _time, ts</query>
         </search>
         <option name="charting.axisY.maximumNumber">1</option>
-        <option name="charting.chart.overlayFields">lower95(pacf(arima100)),upper95(pacf(arima100))</option>
+        <option name="charting.chart.overlayFields">lower95(pacf(ts)),upper95(pacf(ts))</option>
         <option name="charting.legend.placement">none</option>
         <option name="height">200</option>
         <option name="refresh.display">progressbar</option>
       </chart>
     </panel>
-  </row>
-  <row>
     <panel>
       <title>ARIMA(0, 0, 2)</title>
       <chart>
@@ -74,16 +73,15 @@
         <option name="height">400</option>
         <option name="refresh.display">progressbar</option>
       </chart>
-    </panel>
-    <panel>
       <chart>
         <title>ACF</title>
         <search base="arima002">
-          <query>| fit ACF k=20 arima002
-| fields - _time, arima002</query>
+          <query>| rename arima002 as ts
+| fit ACF k=20 ts
+| fields - _time, ts</query>
         </search>
         <option name="charting.axisY.maximumNumber">1</option>
-        <option name="charting.chart.overlayFields">lower95(acf(arima002)),upper95(acf(arima002))</option>
+        <option name="charting.chart.overlayFields">lower95(acf(ts)),upper95(acf(ts))</option>
         <option name="charting.legend.placement">none</option>
         <option name="height">200</option>
         <option name="refresh.display">progressbar</option>
@@ -91,12 +89,74 @@
       <chart>
         <title>PACF</title>
         <search base="arima002">
-          <query>| fit PACF k=20 arima002
-| fields - _time, arima002</query>
+          <query>| rename arima002 as ts 
+| fit PACF k=20 ts
+| fields - _time, ts</query>
         </search>
         <option name="charting.axisTitleY.visibility">collapsed</option>
         <option name="charting.axisY2.enabled">0</option>
-        <option name="charting.chart.overlayFields">lower95(pacf(arima002)),upper95(pacf(arima002))</option>
+        <option name="charting.chart.overlayFields">lower95(pacf(ts)),upper95(pacf(ts))</option>
+        <option name="charting.legend.placement">none</option>
+        <option name="height">200</option>
+        <option name="refresh.display">progressbar</option>
+      </chart>
+    </panel>
+    <panel>
+      <title>ARIMA(0, 1, 0)</title>
+      <input type="radio" token="token_diff" searchWhenChanged="true">
+        <label>Show ACF and PACF</label>
+        <choice value="arima010">of initial series</choice>
+        <choice value="arima010_d1">of first differences</choice>
+        <default>arima010</default>
+        <initialValue>arima010</initialValue>
+      </input>
+      <chart>
+        <search id="arima110">
+          <query>| inputlookup arima010.csv 
+| eval tmp=$reload$ 
+| fields - tmp 
+| autoregress p=1 arima010 
+| fillnull value=0 arima010_p1 
+| eval arima010_d1=arima010-arima010_p1
+| table _time, arima010, arima010_d1</query>
+          <earliest>0</earliest>
+          <latest></latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="charting.axisTitleX.visibility">collapsed</option>
+        <option name="charting.axisTitleY.visibility">collapsed</option>
+        <option name="charting.axisTitleY2.visibility">collapsed</option>
+        <option name="charting.axisY2.enabled">0</option>
+        <option name="charting.chart">line</option>
+        <option name="charting.chart.overlayFields">arima010_d1</option>
+        <option name="charting.drilldown">all</option>
+        <option name="charting.legend.placement">top</option>
+        <option name="height">300</option>
+        <option name="refresh.display">progressbar</option>
+      </chart>
+      <chart>
+        <title>ACF</title>
+        <search base="arima110">
+          <query>| rename $token_diff$ as ts 
+| fit ACF k=25 ts 
+| fields - _time, ts</query>
+        </search>
+        <option name="charting.axisY.maximumNumber">1</option>
+        <option name="charting.chart.overlayFields">lower95(acf(ts)),upper95(acf(ts))</option>
+        <option name="charting.legend.placement">none</option>
+        <option name="height">200</option>
+        <option name="refresh.display">progressbar</option>
+      </chart>
+      <chart>
+        <title>PACF</title>
+        <search base="arima110">
+          <query>| rename $token_diff$ as ts 
+| fit PACF k=20 ts
+| fields - _time, ts</query>
+        </search>
+        <option name="charting.axisTitleY.visibility">collapsed</option>
+        <option name="charting.axisY2.enabled">0</option>
+        <option name="charting.chart.overlayFields">lower95(pacf(ts)),upper95(pacf(ts))</option>
         <option name="charting.legend.placement">none</option>
         <option name="height">200</option>
         <option name="refresh.display">progressbar</option>
@@ -109,20 +169,16 @@
       <table>
         <search>
           <query>| gentimes start="01/01/2018" increment=1h
-| eval tmp=$generate$
-| eval _time=starttime, loc=0, scale=1
-| normal loc=loc scale=scale
-| streamstats sum(gen_normal) as arima100
+| argenerate time_field="starttime" k=0.7 order=1
+| rename gen_ar as arima100
 | table _time, arima100
 | outputlookup arima100.csv</query>
           <earliest>0</earliest>
           <latest></latest>
           <sampleRatio>1</sampleRatio>
-          <done>
-            <eval token="reload">now()</eval>
-          </done>
         </search>
         <option name="count">10</option>
+        <option name="refresh.display">progressbar</option>
       </table>
     </panel>
     <panel>
@@ -156,19 +212,20 @@
         <search>
           <query>| gentimes start="01/01/2018" increment=1h
 | eval tmp=$generate$
-| eval _time=starttime, loc=0, scale=1
+| eval _time=starttime
+| eval loc=0, scale=1
 | normal loc=loc scale=scale
-| streamstats sum(gen_normal) as arima100
 | streamstats count as trend
-| eval arima110 = arima100 + trend/10
-| table _time, arima110
-| outputlookup arima110.csv</query>
+| eval arima010 = gen_normal + trend/50
+| table _time, arima010
+| outputlookup arima010.csv</query>
           <earliest>-24h@h</earliest>
           <latest>now</latest>
           <sampleRatio>1</sampleRatio>
         </search>
+        <option name="drilldown">cell</option>
         <option name="refresh.display">progressbar</option>
       </table>
     </panel>
   </row>
-</dashboard>
+</form>

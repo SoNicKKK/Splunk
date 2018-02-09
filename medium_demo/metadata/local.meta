@@ -8,11 +8,23 @@ modtime = 1517833169.677705000
 
 [nav/default]
 version = 7.0.0
-modtime = 1517842310.249887000
+modtime = 1518176464.114186000
 
 [views/arima_synthetic]
 access = read : [ * ], write : [ * ]
 export = none
 owner = admin
 version = 7.0.0
-modtime = 1518114741.310196000
+modtime = 1518173036.288582000
+
+[commands/normal]
+access = read : [ * ], write : [ * ]
+export = system
+owner = nobody
+version = 7.0.0
+
+[commands/argenerate]
+access = read : [ * ], write : [ * ]
+export = system
+owner = nobody
+version = 7.0.0

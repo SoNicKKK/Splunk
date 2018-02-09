@@ -1,5 +1,6 @@
 <nav search_view="search" color="#242424">
-  <view name="search" default='true' />
+  <view name="medium_demo" default='true' />
+  <view name="search" />
   <view name="datasets" />
   <view name="reports" />
   <view name="alerts" />

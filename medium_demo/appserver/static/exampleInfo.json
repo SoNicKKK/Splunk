@@ -1,0 +1,17 @@
+[
+{
+    "id": "stationarity",
+    "title": "Time Series",
+    "short-description": "Some examples of stationary and non-stationary time series",
+    "category": "Intro"
+}
+
+,
+{
+    "id": "arima_synthetic",
+    "title": "Synthetic ARIMA processes",
+    "short-description": "Some examples of ARIMA processes. For each process chart of time series, as well as ACF and PACF are provided",
+    "category": "ARIMA"
+}
+
+]
