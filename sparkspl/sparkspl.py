@@ -27,13 +27,7 @@ class SparkSpl():
 
     def __splTimechart(self, statement):
         statement = statement.lower()
-        pos, ret = {}, {}
-        sp = statement.split(' ')
-        for i, s in enumerate(sp):
-            if '=' in s:
-                pos[s.split('=')[0]] = s.split('=')[1]
-            if s == 'as':
-                ret[sp[i+1]] = sp[i-1]
+        pos, ret = self.__parsePositionalAndAs(statement)        
         span = self.__getSpanInSeconds(pos['span'])
 
         agg_string = []
@@ -50,8 +44,24 @@ class SparkSpl():
                 .withColumnRenamed('newtime', '_time') \
                 .orderBy('_time')
     
-    def __getSpanInSeconds(self, text):
-        r = re.search(r'(?P<num>\d+)(?P<dim>[a-z]+)', text)
+    def __parsePositionalAndAs(self, statement):
+        pos, ret = {}, {}
+        sp = statement.split(' ')
+        for i, s in enumerate(sp):
+            if '=' in s:
+                pos[s.split('=')[0]] = s.split('=')[1]
+            elif (sp[i] == 'as') | (sp[i-1] == 'as'):
+                continue
+            elif i == len(sp) - 1:
+                ret[sp[i]] = sp[i]
+            elif sp[i+1] == 'as':        
+                ret[sp[i+2]] = sp[i]
+            else:
+                ret[sp[i]] = sp[i]
+        return pos, ret
+
+    def __getSpanInSeconds(self, statement):
+        r = re.search(r'(?P<num>\d+)(?P<dim>[a-z]+)', statement)
         num = int(r.group('num'))
         if r.group('dim') == 's':
             span = num
